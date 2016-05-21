@@ -1,7 +1,5 @@
 package com.abc.controllers;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.abc.model.PublishToTopicRequest;
 import com.abc.producer.ProducerProxy;
-import com.abc.producer.ZookeeperProxy;
 import com.abc.utils.JsonDataAdapter;
 
 @RestController
@@ -30,10 +27,7 @@ public class ProducerController {
 		log.warn("zzzz input:" + input);
 		PublishToTopicRequest request = dataAdapter.read(input, PublishToTopicRequest.class);
 		try {
-			producerProxy.sendMessage(request.getTopic(), request.getMessage());
-			ZookeeperProxy z = new ZookeeperProxy();
-			List<String> l = z.getListOfTopics();
-			log.warn("zzzz list of topic:"+z);
+			producerProxy.sendMessage(request.getTopic(), request.getMessage());			
 			return "Success";
 		} catch (Exception e) {
 			return "Failed";

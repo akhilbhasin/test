@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 public class ZookeeperProxy {
@@ -12,7 +14,13 @@ public class ZookeeperProxy {
 	
 	public ZookeeperProxy(){
 		try {
-			zk = new ZooKeeper("localhost:2181", 10000, null);
+			zk = new ZooKeeper("localhost:2181", 10000, new Watcher() {
+				
+				@Override
+				public void process(WatchedEvent event) {
+					return;					
+				}
+			});
 		} catch (IOException e) {
 			throw new RuntimeException("unable to create zookeeper client",e);
 		}
@@ -20,7 +28,7 @@ public class ZookeeperProxy {
 	
 	public List<String> getListOfTopics(){
 		try {
-			return zk.getChildren("/brokers/topics", false);
+			return zk.getChildren("/brokers/topics", false);			
 		} catch (KeeperException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}

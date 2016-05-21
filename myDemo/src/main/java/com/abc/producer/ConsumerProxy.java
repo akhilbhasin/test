@@ -24,11 +24,10 @@ public class ConsumerProxy {
 	public ConsumerProxy(final String groupId) {
 		try (InputStream props = Resources.getResource("consumer.props").openStream()) {
             Properties properties = new Properties();
-            properties.load(props);
-            if (properties.getProperty("group.id") == null) {
-            	log.warn("zzzz group id being added:"+groupId);
-                properties.setProperty("group.id", groupId);
-            }
+            properties.load(props);            
+            log.warn("zzzz group id being added:"+groupId);
+            properties.setProperty("group.id", groupId);
+            
             this.kafkaConsumer = new KafkaConsumer<>(properties);
         } catch (IOException e) {
         	throw new RuntimeException("unable to create KafkaConsumer for groupId"+groupId);

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.abc.model.GetMessagesRequest;
+import com.abc.producer.Consumer;
 import com.abc.producer.ConsumerProxy;
 import com.abc.utils.JsonDataAdapter;
 
@@ -20,18 +21,25 @@ public class ConsumerController {
 	@Autowired
 	private JsonDataAdapter dataAdapter;
 
+	@Autowired
+	private Consumer consumer;
+
 	@RequestMapping("/getMessages")
 	public List<String> getMessages(@RequestBody final String input) {
 		try {
 			log.warn("zzzzz input:" + input);
-			GetMessagesRequest request = dataAdapter.read(input, GetMessagesRequest.class);			
+			GetMessagesRequest request = dataAdapter.read(input, GetMessagesRequest.class);
 			ConsumerProxy proxy = new ConsumerProxy(request.getGroupId());
 			List<String> messages = proxy.getMessages(request.getTopic());
 			return messages;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
 
+	@RequestMapping("/scheduleConsumer")
+	public void schedulerConsumer(@RequestBody final String input) {
+		consumer.scheduleConsumer();
 	}
 
 }
