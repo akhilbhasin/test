@@ -1,5 +1,4 @@
 bootstrap.servers=localhost:9092
-group.id=test
 #changing auto commit to false, so that we read entire again
 enable.auto.commit=true
 key.deserializer=org.apache.kafka.common.serialization.StringDeserializer

@@ -12,7 +12,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import com.google.common.io.Resources;
 
@@ -27,6 +26,7 @@ public class ConsumerProxy {
             Properties properties = new Properties();
             properties.load(props);
             if (properties.getProperty("group.id") == null) {
+            	log.warn("zzzz group id being added:"+groupId);
                 properties.setProperty("group.id", groupId);
             }
             this.kafkaConsumer = new KafkaConsumer<>(properties);
@@ -37,17 +37,22 @@ public class ConsumerProxy {
 	}
 	
 	public List<String> getMessages(final String topic){
-		kafkaConsumer.subscribe(Arrays.asList(topic));
-		log.warn("zzzz topic: "+topic);
-		ConsumerRecords<String, String> records = kafkaConsumer.poll(5000);
-		log.warn("zzzz records: "+records.toString());
-		log.warn("zzzz records: "+records.isEmpty());
-		log.warn("zzzz count: "+records.count());
-		List<String> messages = new ArrayList<>();
-		for (ConsumerRecord<String, String> record : records){
-			messages.add(record.value());
+		try {
+			kafkaConsumer.subscribe(Arrays.asList(topic));
+			log.warn("zzzz topic: "+topic);
+			ConsumerRecords<String, String> records = kafkaConsumer.poll(5000);
+			log.warn("zzzz records: "+records.toString());
+			log.warn("zzzz records: "+records.isEmpty());
+			log.warn("zzzz count: "+records.count());
+			List<String> messages = new ArrayList<>();
+			for (ConsumerRecord<String, String> record : records){
+				messages.add(record.value());
+			}
+			return messages;
+		} finally {
+			kafkaConsumer.close();
 		}
-		return messages;		
+				
 	}
 
 }
