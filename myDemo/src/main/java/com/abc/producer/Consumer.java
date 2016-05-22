@@ -26,8 +26,7 @@ public class Consumer {
 
 	public void scheduleConsumer(final String groupId, final GroupIdToSubscriptionService sqlService) {
 		this.sqlService = sqlService;
-		this.groupId = groupId;
-		log.warn("zzz 1"+groupId);
+		this.groupId = groupId;		
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 		executor.scheduleWithFixedDelay(new ConsumerCallable(), 0, 5, TimeUnit.SECONDS);
 
@@ -40,7 +39,7 @@ public class Consumer {
 		private GroupIdToSubscriptionsDao dao = new GroupIdToSubscriptionsDao();
 
 		private void init() {
-			log.warn("zzzz in init");
+			log.warn("in init");
 			zk = new ZookeeperProxy();
 			try (InputStream props = Resources.getResource("consumer.props").openStream()) {
 				Properties properties = new Properties();
@@ -56,7 +55,7 @@ public class Consumer {
 		@Override
 		public void run() {
 			init();
-			log.warn("after init");
+			
 			//List<String> topics = zk.getListOfTopics();
 			//List<String> topics = dao.getSubscriptionsForGroupId(groupId);
 			List<String> topics = sqlService.getSubscriptions(groupId);
@@ -74,7 +73,7 @@ public class Consumer {
 				}
 			}catch(Exception e){
 				System.out.println(e.getStackTrace());
-				log.error("zzzz",e);
+				log.error("Error",e);
 			}finally {
 				kafkaConsumer.close();
 			}

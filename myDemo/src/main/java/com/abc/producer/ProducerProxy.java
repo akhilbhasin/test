@@ -36,7 +36,7 @@ public class ProducerProxy {
 		try {
 			ProducerRecord<String, String> producerRecordRequest = new ProducerRecord<String, String>(topic, message);
 			Future<RecordMetadata> record = kafkaProducer.send(producerRecordRequest);
-			log.warn("zzzzz record has been added:"+record.get());
+			log.warn("record has been added:"+record.get());
 		} catch (Exception e) {
 			throw new RuntimeException("unable to post to topic:" + topic + " , message:" + message);
 		} finally {
