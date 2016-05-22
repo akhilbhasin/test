@@ -7,18 +7,15 @@ import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import com.google.common.io.Resources;
 
-@Component
 public class Consumer {
 
 	private static Logger log = LoggerFactory.getLogger(Consumer.class);
@@ -35,6 +32,7 @@ public class Consumer {
 		private static final String CONSUMER_OFFSET_STRING = "__consumer_offsets";
 		private KafkaConsumer<String, String> kafkaConsumer;
 		private ZookeeperProxy zk;
+		private GroupIdToSubscriptionsDao dao = new GroupIdToSubscriptionsDao();
 
 		private void init() {
 			zk = new ZookeeperProxy();
@@ -42,7 +40,7 @@ public class Consumer {
 				Properties properties = new Properties();
 				properties.load(props);
 				properties.setProperty("group.id", groupId);
-				this.kafkaConsumer = new KafkaConsumer<>(properties);
+				this.kafkaConsumer = new KafkaConsumer<>(properties);				
 
 			} catch (IOException e) {
 				throw new RuntimeException("unable to create KafkaConsumer");
@@ -52,16 +50,19 @@ public class Consumer {
 		@Override
 		public void run() {
 			init();
-			List<String> topics = zk.getListOfTopics();
-			topics = topics.stream().filter(topic -> !CONSUMER_OFFSET_STRING.equals(topic))
-					.collect(Collectors.toList());
-			log.warn("zzzz listOfTopic" + topics);
+			
+			//List<String> topics = zk.getListOfTopics();
+			List<String> topics = dao.getSubscriptionsForGroupId(groupId);
+			
+//			topics = topics.stream().filter(topic -> !CONSUMER_OFFSET_STRING.equals(topic))
+//					.collect(Collectors.toList());
+			log.warn("groupId: "+groupId+" ,listOfTopic subscribed: " + topics);
 			try {
 				kafkaConsumer.subscribe(topics);
-				ConsumerRecords<String, String> records = kafkaConsumer.poll(5000);
-				log.warn("zzzz records empty" + records.isEmpty());
+			
+				ConsumerRecords<String, String> records = kafkaConsumer.poll(5000);			
 				for (ConsumerRecord<String, String> record : records) {
-					System.out.println("topic" + record.topic() + "message:" + record.value());
+					System.out.println("groupId: "+groupId+" ,topic: " + record.topic() + " ,message: " + record.value());
 
 				}
 			}catch(Exception e){

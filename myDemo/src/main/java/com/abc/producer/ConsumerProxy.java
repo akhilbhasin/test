@@ -30,6 +30,9 @@ public class ConsumerProxy {
 			properties.setProperty("group.id", groupId);
 			log.warn("zzz groupId set is:"+properties.getProperty("group.id"));
 			this.kafkaConsumer = new KafkaConsumer<>(properties);
+			kafkaConsumer.subscribe(Arrays.asList("topic1"));
+			
+			log.warn("zzzz subscriptions in construcotr:"+kafkaConsumer.subscription());
 		} catch (IOException e) {
 			throw new RuntimeException("unable to create KafkaConsumer for groupId" + groupId);
 		}
@@ -77,7 +80,19 @@ public class ConsumerProxy {
 		}
 	}
 
-	public List<String> listTopics() {
+	public List<String> listTopics(final String groupId) {
+		KafkaConsumer<String, String> kafkaConsumer;
+		try (InputStream props = Resources.getResource("consumer.props").openStream()) {
+			Properties properties = new Properties();
+			properties.load(props);
+			log.warn("zzzz group id being added:" + groupId);
+			properties.setProperty("group.id", groupId);
+			log.warn("zzz groupId set is:"+properties.getProperty("group.id"));
+			kafkaConsumer = new KafkaConsumer<>(properties);
+		} catch (IOException e) {
+			throw new RuntimeException("unable to create KafkaConsumer for groupId" + groupId);
+		}
+		
 		try {
 			
 			Set<String> currentSubscriptions = kafkaConsumer.subscription();
