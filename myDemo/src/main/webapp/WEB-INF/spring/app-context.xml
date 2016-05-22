@@ -18,5 +18,6 @@
 	<mvc:annotation-driven />
 	<mvc:resources mapping="/resources/**" location="/resources/" />
 
+	<import resource="classpath:hibernate-jdbc-servlet.xml" />
 
 </beans>

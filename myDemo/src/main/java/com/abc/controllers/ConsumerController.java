@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.abc.dao.GroupIdToSubscriptionsDao;
 import com.abc.model.GetMessagesRequest;
 import com.abc.model.ListTopicRequest;
 import com.abc.model.RemoveTopicForGroupIdRequest;
@@ -18,7 +19,7 @@ import com.abc.model.ScheduleConsumerRequest;
 import com.abc.model.SubscribeGroupIdToTopic;
 import com.abc.producer.Consumer;
 import com.abc.producer.ConsumerProxy;
-import com.abc.producer.GroupIdToSubscriptionsDao;
+import com.abc.service.GroupIdToSubscriptionService;
 import com.abc.utils.JsonDataAdapter;
 
 @RestController
@@ -31,6 +32,9 @@ public class ConsumerController {
 
 	@Autowired
 	private GroupIdToSubscriptionsDao dao;
+	
+	@Autowired
+	private GroupIdToSubscriptionService groupIdToSubscriptionService;
 
 	@RequestMapping("/getMessages")
 	public List<String> getMessages(@RequestBody final String input) {
@@ -52,7 +56,7 @@ public class ConsumerController {
 		if (!map.containsKey(request.getGroupId())) {
 			Consumer consumer = new Consumer();
 			log.warn("about to schedule");
-			consumer.scheduleConsumer(request.getGroupId());
+			consumer.scheduleConsumer(request.getGroupId(), groupIdToSubscriptionService);
 		} else {
 			log.warn("not scheduling");
 			map.put(request.getGroupId(), "Added");
@@ -77,4 +81,21 @@ public class ConsumerController {
 		return dao.getSubscriptionsForGroupId(request.getGroupId());
 	}
 
+	@RequestMapping("subscribeToTopic")
+	public void subscribeToTopic(@RequestBody final String input) {
+		SubscribeGroupIdToTopic request = dataAdapter.read(input, SubscribeGroupIdToTopic.class);
+		groupIdToSubscriptionService.addSubscription(request.getGroupId(), request.getTopic());
+	}
+	
+	@RequestMapping("unsubscribeToTopic")
+	public void unsubscribeTopic(@RequestBody final String input) {
+		RemoveTopicForGroupIdRequest request = dataAdapter.read(input, RemoveTopicForGroupIdRequest.class);
+		groupIdToSubscriptionService.removeSubscription(request.getGroupId(), request.getTopic());
+	}
+	
+	@RequestMapping("listTopicsForGroup")
+	public @ResponseBody List<String> listTopicForGroup(@RequestBody final String input) {
+		ListTopicRequest request = dataAdapter.read(input, ListTopicRequest.class);
+		return groupIdToSubscriptionService.getSubscriptions(request.getGroupId());
+	}
 }

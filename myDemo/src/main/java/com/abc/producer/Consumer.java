@@ -14,15 +14,20 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.abc.dao.GroupIdToSubscriptionsDao;
+import com.abc.service.GroupIdToSubscriptionService;
 import com.google.common.io.Resources;
 
 public class Consumer {
 
 	private static Logger log = LoggerFactory.getLogger(Consumer.class);
+	private GroupIdToSubscriptionService sqlService;
 	private String groupId;
 
-	public void scheduleConsumer(final String groupId) {
+	public void scheduleConsumer(final String groupId, final GroupIdToSubscriptionService sqlService) {
+		this.sqlService = sqlService;
 		this.groupId = groupId;
+		log.warn("zzz 1"+groupId);
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 		executor.scheduleWithFixedDelay(new ConsumerCallable(), 0, 5, TimeUnit.SECONDS);
 
@@ -35,6 +40,7 @@ public class Consumer {
 		private GroupIdToSubscriptionsDao dao = new GroupIdToSubscriptionsDao();
 
 		private void init() {
+			log.warn("zzzz in init");
 			zk = new ZookeeperProxy();
 			try (InputStream props = Resources.getResource("consumer.props").openStream()) {
 				Properties properties = new Properties();
@@ -50,9 +56,10 @@ public class Consumer {
 		@Override
 		public void run() {
 			init();
-			
+			log.warn("after init");
 			//List<String> topics = zk.getListOfTopics();
-			List<String> topics = dao.getSubscriptionsForGroupId(groupId);
+			//List<String> topics = dao.getSubscriptionsForGroupId(groupId);
+			List<String> topics = sqlService.getSubscriptions(groupId);
 			
 //			topics = topics.stream().filter(topic -> !CONSUMER_OFFSET_STRING.equals(topic))
 //					.collect(Collectors.toList());
