@@ -1,5 +1,8 @@
 package com.experiments.experiments.perterson;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
+
 import com.google.common.base.Preconditions;
 
 /**
@@ -7,6 +10,7 @@ import com.google.common.base.Preconditions;
  * <p>
  * takes i which is the thread no. which can be only 0 or 1.
  * </p>
+ * This might not work since we need the variable assignment to be atomic
  * 
  * @author abbhasin
  *
@@ -19,7 +23,7 @@ public abstract class Perterson implements Runnable {
 	 * thread want to enter it sets the value of its index 'i' to 1; and
 	 * whenever it had done its work it sets the value to 0.
 	 */
-	private volatile static int doIWantToEnter[] = new int[2];
+	private volatile static AtomicIntegerArray doIWantToEnter = new AtomicIntegerArray(2);
 	/**
 	 * There is only 1 waitingRoom since there can be at max 2 threads competing
 	 * with Peterson.
@@ -30,11 +34,12 @@ public abstract class Perterson implements Runnable {
 	 * section.
 	 * </p>
 	 */
-	private volatile static int lastToWaitingRoom = -1;
+	private volatile static AtomicInteger lastToWaitingRoom = new AtomicInteger(-1);
 	static {
 		for (int q = 0; q < 2; q++) {
-			doIWantToEnter[q] = 0;
-		}
+			doIWantToEnter.set(q, 0);
+		}	
+		
 	}
 
 	protected Perterson(final int i) {
@@ -43,20 +48,20 @@ public abstract class Perterson implements Runnable {
 	}
 
 	public void run() {
-		doIWantToEnter[i] = 1; // I want to enter
-		lastToWaitingRoom = i; // I enter the waiting room
+		doIWantToEnter.set(i, 1);	// I want to enter
+		lastToWaitingRoom.set(i); // I enter the waiting room
 		/**
 		 * if the other thread wants to enter its criticalSection and i came
 		 * last in the waitingRoom, then i have to wait.
 		 */
-		while (doIWantToEnter[1 - i] == 1 && lastToWaitingRoom == i) {
+		while (doIWantToEnter.get(1-i) == 1 && lastToWaitingRoom.get() == i) {
 			
 		}
-		System.out.println("Thread No.:" + getI() + "doIWantToEnter:" + doIWantToEnter[0] + " ;" + doIWantToEnter[1]
+		System.out.println("Thread No.:" + getI() + "doIWantToEnter:" + doIWantToEnter.get(0) + " ;" + doIWantToEnter.get(1)
 				+ "  ,waitingRoom:" + lastToWaitingRoom);
 		enterCriticalSection();
 
-		doIWantToEnter[i] = 0; // I do not want to enter anymore
+		doIWantToEnter.set(i, 0); // I do not want to enter anymore
 	}
 
 	protected abstract void enterCriticalSection();

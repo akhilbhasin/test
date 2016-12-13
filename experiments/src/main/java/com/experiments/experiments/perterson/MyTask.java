@@ -1,5 +1,6 @@
 package com.experiments.experiments.perterson;
 
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MyTask extends Perterson {
@@ -34,7 +35,7 @@ public class MyTask extends Perterson {
 //	}
 	
 	public static int randInt2(){
-		return ThreadLocalRandom.current().nextInt(2);
+		return new Random().nextInt(2);
 	}
 
 }
